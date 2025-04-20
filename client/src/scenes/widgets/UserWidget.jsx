@@ -11,6 +11,7 @@ import WidgetWrapper from "components/WidgetWrapper";
 import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import SocialLinksModal from "./EditSocialsWidget";
 
 const UserWidget = ({ userId, picturePath }) => {
   const [user, setUser] = useState(null);
@@ -20,6 +21,8 @@ const UserWidget = ({ userId, picturePath }) => {
   const dark = palette.neutral.dark;
   const medium = palette.neutral.medium;
   const main = palette.neutral.main;
+  const loggedInUserId = useSelector((state) => state.user._id);
+  const [socialLinksModalOpen, setSocialLinksModalOpen] = useState(false);
 
   const getUser = async () => {
     const response = await fetch(`http://localhost:3001/users/${userId}`, {
@@ -46,7 +49,27 @@ const UserWidget = ({ userId, picturePath }) => {
     viewedProfile,
     impressions,
     friends,
+    socials,
   } = user;
+
+  const isPersonalProfile = loggedInUserId === userId;
+
+  const updateSocialLinks = async (values) => {
+    // Update each social field
+    for (const key in values) {
+      if (values[key]) {
+        await fetch(`http://localhost:3001/users/${userId}/social/${key}`, {
+          method: "PATCH",
+          headers: {
+            Authorization: `Bearer ${token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ [key]: values[key] }),
+        });
+      }
+    }
+    await getUser(); // Refresh after update
+  };
 
   return (
     <WidgetWrapper>
@@ -65,17 +88,29 @@ const UserWidget = ({ userId, picturePath }) => {
               fontWeight="500"
               sx={{
                 "&:hover": {
-                  color: palette.primary.light,
+                  color: palette.primary.main,
                   cursor: "pointer",
                 },
               }}
             >
               {firstName} {lastName}
             </Typography>
-            <Typography color={medium}>{friends.length} friends</Typography>
+            <Typography color={medium}>
+              {friends.length} {friends.length > 1 ? "friends" : "friend"}
+            </Typography>
           </Box>
         </FlexBetween>
-        <ManageAccountsOutlined />
+        {isPersonalProfile && (
+          <ManageAccountsOutlined
+            sx={{
+              color: main,
+              cursor: "pointer",
+              "&:hover": {
+                color: palette.primary.main,
+              },
+            }}
+          />
+        )}
       </FlexBetween>
 
       <Divider />
@@ -95,28 +130,46 @@ const UserWidget = ({ userId, picturePath }) => {
       <Divider />
 
       {/* THIRD ROW */}
-      <Box p="1rem 0">
-        <FlexBetween mb="0.5rem">
-          <Typography color={medium}>Who's viewed your profile</Typography>
-          <Typography color={main} fontWeight="500">
-            {viewedProfile}
-          </Typography>
-        </FlexBetween>
-        <FlexBetween>
-          <Typography color={medium}>Impressions of your post</Typography>
-          <Typography color={main} fontWeight="500">
-            {impressions}
-          </Typography>
-        </FlexBetween>
-      </Box>
+      {isPersonalProfile && (
+        <Box p="1rem 0">
+          <FlexBetween mb="0.5rem">
+            <Typography color={medium}>Who's viewed your profile</Typography>
+            <Typography color={main} fontWeight="500">
+              {viewedProfile}
+            </Typography>
+          </FlexBetween>
+          <FlexBetween>
+            <Typography color={medium}>Impressions of your post</Typography>
+            <Typography color={main} fontWeight="500">
+              {impressions}
+            </Typography>
+          </FlexBetween>
+        </Box>
+      )}
 
       <Divider />
 
       {/* FOURTH ROW */}
       <Box p="1rem 0">
-        <Typography fontSize="1rem" color={main} fontWeight="500" mb="1rem">
-          Social Profiles
-        </Typography>
+        <FlexBetween gap="1rem" mb="1rem">
+          <Typography fontSize="1rem" color={main} fontWeight="500">
+            Social Profiles
+          </Typography>
+          {isPersonalProfile && (
+            <EditOutlined
+              sx={{
+                color: main,
+                cursor: "pointer",
+                "&:hover": {
+                  color: palette.primary.main,
+                },
+              }}
+              onClick={() => {
+                setSocialLinksModalOpen(true);
+              }}
+            />
+          )}
+        </FlexBetween>
 
         <FlexBetween gap="1rem" mb="0.5rem">
           <FlexBetween gap="1rem">
@@ -125,10 +178,28 @@ const UserWidget = ({ userId, picturePath }) => {
               <Typography color={main} fontWeight="500">
                 Twitter
               </Typography>
-              <Typography color={medium}>Social Network</Typography>
+              {socials.twitter ? (
+                <Box
+                  component="a"
+                  href={socials.twitter}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    color: medium,
+                    textDecoration: "none",
+                    "&:hover": {
+                      textDecoration: "underline",
+                      color: palette.primary.main,
+                    },
+                  }}
+                >
+                  {socials.twitter}
+                </Box>
+              ) : (
+                <Typography color={medium}>Add your X account.</Typography>
+              )}
             </Box>
           </FlexBetween>
-          <EditOutlined sx={{ color: main }} />
         </FlexBetween>
 
         <FlexBetween gap="1rem">
@@ -138,12 +209,41 @@ const UserWidget = ({ userId, picturePath }) => {
               <Typography color={main} fontWeight="500">
                 Linkedin
               </Typography>
-              <Typography color={medium}>Network Platform</Typography>
+              {socials.linkedin ? (
+                <Box
+                  component="a"
+                  href={socials.linkedin}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    color: medium,
+                    textDecoration: "none",
+                    "&:hover": {
+                      textDecoration: "underline",
+                      color: palette.primary.main, // optional highlight on hover
+                    },
+                  }}
+                >
+                  {socials.linkedin}
+                </Box>
+              ) : (
+                <Typography color={medium}>
+                  Add your linkedin account.
+                </Typography>
+              )}
             </Box>
           </FlexBetween>
-          <EditOutlined sx={{ color: main }} />
         </FlexBetween>
       </Box>
+      {/* MODAL */}
+      {isPersonalProfile && (
+        <SocialLinksModal
+          open={socialLinksModalOpen}
+          handleClose={() => setSocialLinksModalOpen(false)}
+          initialValues={socials || { linkedin: "", twitter: "" }}
+          onSubmit={updateSocialLinks}
+        />
+      )}
     </WidgetWrapper>
   );
 };
