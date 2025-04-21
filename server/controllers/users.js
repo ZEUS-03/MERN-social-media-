@@ -61,3 +61,21 @@ export const addRemoveFriend = async (req, res) => {
     res.status(404).json({ message: err.message });
   }
 };
+
+export const updateSocials = async (req, res) => {
+  try {
+    const { id, social } = req.params;
+    const user = await User.findById(id);
+    if (user) {
+      if (social === "linkedin") {
+        user.socials.linkedin = req.body.linkedin;
+      } else if (social === "twitter") {
+        user.socials.twitter = req.body.twitter;
+      }
+      await user.save();
+      res.status(200).json(user);
+    }
+  } catch (err) {
+    res.status(404).json({ message: err.message });
+  }
+};

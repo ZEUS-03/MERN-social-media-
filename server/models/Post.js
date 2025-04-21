@@ -22,9 +22,9 @@ const postSchema = mongoose.Schema(
       type: Map,
       of: Boolean,
     },
-    comments: {
-      type: Array,
-      default: [],
+    commentCount: {
+      type: Number,
+      default: 0,
     },
   },
   { timestamps: true }

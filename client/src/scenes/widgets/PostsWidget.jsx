@@ -50,7 +50,7 @@ const PostsWidget = ({ userId, isProfile = false }) => {
           picturePath,
           userPicturePath,
           likes,
-          comments,
+          commentCount,
         }) => (
           <PostWidget
             key={_id}
@@ -62,7 +62,7 @@ const PostsWidget = ({ userId, isProfile = false }) => {
             picturePath={picturePath}
             userPicturePath={userPicturePath}
             likes={likes}
-            comments={comments}
+            commentCount={commentCount}
           />
         )
       )}
