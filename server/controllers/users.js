@@ -30,6 +30,26 @@ export const getUserFriends = async (req, res) => {
   }
 };
 
+export const searchUsers = async (req, res) => {
+  try {
+    const query = req.query.q;
+
+    if (!query) return res.status(400).json({ message: "Missing query param" });
+
+    const regex = new RegExp(query, "i"); // case-insensitive
+
+    const users = await User.find({
+      $or: [{ firstName: regex }, { lastName: regex }],
+    }).select("firstName lastName picturePath location"); // adjust fields as needed
+
+    res.status(200).json(users);
+  } catch (err) {
+    res
+      .status(500)
+      .json({ message: "Failed to search users", error: err.message });
+  }
+};
+
 /* UPDATE */
 export const addRemoveFriend = async (req, res) => {
   try {

@@ -12,8 +12,14 @@ import { useSelector } from "react-redux";
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import SocialLinksModal from "./EditSocialsWidget";
+import { BASE_URL } from "helper/constants";
 
-const UserWidget = ({ userId, picturePath }) => {
+const UserWidget = ({
+  userId,
+  picturePath,
+  onStartLoading,
+  onFinishLoading,
+}) => {
   const [user, setUser] = useState(null);
   const { palette } = useTheme();
   const navigate = useNavigate();
@@ -25,15 +31,17 @@ const UserWidget = ({ userId, picturePath }) => {
   const [socialLinksModalOpen, setSocialLinksModalOpen] = useState(false);
 
   const getUser = async () => {
-    const response = await fetch(`http://localhost:3001/users/${userId}`, {
+    const response = await fetch(`${BASE_URL}/users/${userId}`, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });
     const data = await response.json();
+    if (onFinishLoading) onFinishLoading();
     setUser(data);
   };
 
   useEffect(() => {
+    if (onStartLoading) onStartLoading();
     getUser();
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -58,7 +66,7 @@ const UserWidget = ({ userId, picturePath }) => {
     // Update each social field
     for (const key in values) {
       if (values[key]) {
-        await fetch(`http://localhost:3001/users/${userId}/social/${key}`, {
+        await fetch(`${BASE_URL}/users/${userId}/social/${key}`, {
           method: "PATCH",
           headers: {
             Authorization: `Bearer ${token}`,

@@ -1,4 +1,5 @@
 import { Box, Typography, useMediaQuery } from "@mui/material";
+import { BASE_URL } from "helper/constants";
 import { isLoggedInUser } from "helper/utils";
 import { useEffect, useState } from "react";
 import { useSelector } from "react-redux";
@@ -17,7 +18,7 @@ const ProfilePage = () => {
   const isNonMobileScreens = useMediaQuery("(min-width:1000px)");
 
   const getUser = async () => {
-    const response = await fetch(`http://localhost:3001/users/${userId}`, {
+    const response = await fetch(`${BASE_URL}/users/${userId}`, {
       method: "GET",
       headers: { Authorization: `Bearer ${token}` },
     });
@@ -27,7 +28,7 @@ const ProfilePage = () => {
 
   useEffect(() => {
     getUser();
-  }, []); 
+  }, []);
 
   if (!user) return null;
 
@@ -57,7 +58,7 @@ const ProfilePage = () => {
             <MyPostWidget picturePath={user.picturePath} />
           )}
           <Box m="2rem 0" />
-          <PostsWidget userId={userId} isProfile />
+          <PostsWidget userId={userId} profile={true} />
         </Box>
       </Box>
     </Box>
